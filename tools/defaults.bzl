@@ -1,15 +1,8 @@
 """Re-export of some bazel rules with repository-wide defaults."""
 
-load("@build_bazel_rules_nodejs//:index.bzl", _npm_package_bin = "npm_package_bin", _pkg_npm = "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", _pkg_npm = "pkg_npm")
 load("@devinfra//bazel:extract_js_module_output.bzl", "extract_js_module_output")
-load("@devinfra//bazel:extract_types.bzl", _extract_types = "extract_types")
-load("@devinfra//bazel/http-server:index.bzl", _http_server = "http_server")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("//adev/shared-docs/pipeline/api-gen:generate_api_docs.bzl", _generate_api_docs = "generate_api_docs")
-load("//tools/esm-interop:index.bzl", _nodejs_binary = "nodejs_binary")
-
-http_server = _http_server
-extract_types = _extract_types
 
 # Packages which are versioned together on npm
 ANGULAR_SCOPED_PACKAGES = ["@angular/%s" % p for p in [
@@ -89,58 +82,4 @@ def pkg_npm(name, deps = [], validate = True, **kwargs):
         # should not be built unless it is a dependency of another rule
         tags = ["manual"],
         visibility = visibility,
-    )
-
-def nodejs_binary(
-        name,
-        templated_args = [],
-        enable_linker = False,
-        **kwargs):
-    npm_workspace = _node_modules_workspace_name()
-
-    if not enable_linker:
-        templated_args = templated_args + [
-            # Disable the linker and rely on patched resolution which works better on Windows
-            # and is less prone to race conditions when targets build concurrently.
-            "--nobazel_run_linker",
-        ]
-
-    _nodejs_binary(
-        name = name,
-        npm_workspace = npm_workspace,
-        linker_enabled = enable_linker,
-        templated_args = templated_args,
-        **kwargs
-    )
-
-def _node_modules_workspace_name():
-    return "npm"
-
-def npm_package_bin(args = [], **kwargs):
-    _npm_package_bin(
-        # Disable the linker and rely on patched resolution which works better on Windows
-        # and is less prone to race conditions when targets build concurrently.
-        args = ["--nobazel_run_linker"] + args,
-        **kwargs
-    )
-
-def generate_api_docs(**kwargs):
-    _generate_api_docs(
-        # We need to specify import mappings for Angular packages that import other Angular
-        # packages.
-        import_map = {
-            # We only need to specify top-level entry-points, and only those that
-            # are imported from other packages.
-            "//packages/animations:index.ts": "@angular/animations",
-            "//packages/common:index.ts": "@angular/common",
-            "//packages/core:index.ts": "@angular/core",
-            "//packages/forms:index.ts": "@angular/forms",
-            "//packages/localize:index.ts": "@angular/localize",
-            "//packages/platform-browser-dynamic:index.ts": "@angular/platform-browser-dynamic",
-            "//packages/platform-browser:index.ts": "@angular/platform-browser",
-            "//packages/platform-server:index.ts": "@angular/platform-server",
-            "//packages/router:index.ts": "@angular/router",
-            "//packages/upgrade:index.ts": "@angular/upgrade",
-        },
-        **kwargs
     )

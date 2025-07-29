@@ -8,9 +8,6 @@ load("//:yarn.bzl", "YARN_LABEL")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    patches = [
-        "//tools/esm-interop:patches/bazel/nodejs_binary_esm_support.patch",
-    ],
     sha256 = "5dd1e5dea1322174c57d3ca7b899da381d516220793d0adef3ba03b9d23baa8e",
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.8.3/rules_nodejs-5.8.3.tar.gz"],
 )
@@ -85,9 +82,6 @@ yarn_install(
         "//:tools/npm-patches/@angular+ng-dev+0.0.0-a6dcd24107d12114198251ee5d20cda814a1986a.patch",
         "//:tools/npm-patches/dagre-d3-es+7.0.11.patch",
         "//tools:postinstall-patches.js",
-        "//tools/esm-interop:patches/npm/@bazel+concatjs+5.8.1.patch",
-        "//tools/esm-interop:patches/npm/@bazel+esbuild+5.7.1.patch",
-        "//tools/esm-interop:patches/npm/rxjs+6.6.7.patch",
     ],
     # Currently disabled due to:
     #  1. Missing Windows support currently.
@@ -266,7 +260,7 @@ yarn_install(
 
 git_repository(
     name = "devinfra",
-    commit = "124003d3ffca1053b011c7072de5f84762a75365",
+    commit = "39c70c3c8c63165bc2df0efc7dcb3b3287b69685",
     remote = "https://github.com/angular/dev-infra.git",
 )
 
