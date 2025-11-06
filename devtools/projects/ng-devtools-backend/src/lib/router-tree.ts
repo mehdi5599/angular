@@ -29,7 +29,6 @@ export function parseRoutes(router: Router): Route {
     children: rootChildren ? assignChildrenToParent(null, rootChildren, currentUrl) : [],
     isAux: false,
     isLazy: false,
-    isRedirect: false,
     isActive: true, // Root is always active.
     data: [],
   };
@@ -40,7 +39,7 @@ export function parseRoutes(router: Router): Route {
 function getGuardNames(child: AngularRoute, type: RouteGuard): string[] {
   const guards = child?.[type] || [];
 
-  const names = guards.map((g: any) => g.name);
+  const names = guards.map((g: any) => getClassOrFunctionName(g));
   return names || [];
 }
 
@@ -65,7 +64,6 @@ function assignChildrenToParent(
 
     // only found in aux routes, otherwise property will be undefined
     const isAux = Boolean(child.outlet);
-    const isRedirect = Boolean(child.redirectTo);
     const isLazy = Boolean(child.loadChildren || child.loadComponent);
 
     const pathWithoutParams = routePath.split('/:')[0];
@@ -84,7 +82,6 @@ function assignChildrenToParent(
       isAux,
       isLazy,
       isActive,
-      isRedirect,
     };
 
     if (child.title) {
@@ -122,9 +119,11 @@ function assignChildrenToParent(
  * @returns The formatted name: class name, function name with '()', or '[Function]' for anonymous/arrow functions
  */
 function getClassOrFunctionName(fn: Function, defaultName?: string) {
-  const isArrowWithNoName = !fn.hasOwnProperty('prototype') && fn.name === '';
+  const isArrow = !fn.hasOwnProperty('prototype');
 
-  if (isArrowWithNoName) {
+  const isEmptyName = fn.name === '';
+
+  if ((isArrow && isEmptyName) || isEmptyName) {
     return '[Function]';
   }
 
